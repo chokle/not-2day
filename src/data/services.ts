@@ -306,5 +306,5 @@ export function findPreset(name: string): ServicePreset | undefined {
 
 export function logoUrl(domain?: string) {
   if (!domain) return undefined;
-  return `https://img.logo.dev/${domain}?token=pk_X-1ZO13GSgeOoUrIuJ6GMQ&size=96&format=png`;
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 }
