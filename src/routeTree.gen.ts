@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscriptionsNewRouteImport } from './routes/subscriptions.new'
+import { Route as SubscriptionsIdEditRouteImport } from './routes/subscriptions.$id.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const SubscriptionsNewRoute = SubscriptionsNewRouteImport.update({
   path: '/subscriptions/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SubscriptionsIdEditRoute = SubscriptionsIdEditRouteImport.update({
+  id: '/subscriptions/$id/edit',
+  path: '/subscriptions/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/subscriptions/new': typeof SubscriptionsNewRoute
+  '/subscriptions/$id/edit': typeof SubscriptionsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/subscriptions/new': typeof SubscriptionsNewRoute
+  '/subscriptions/$id/edit': typeof SubscriptionsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/subscriptions/new': typeof SubscriptionsNewRoute
+  '/subscriptions/$id/edit': typeof SubscriptionsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/subscriptions/new'
+  fullPaths: '/' | '/subscriptions/new' | '/subscriptions/$id/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/subscriptions/new'
-  id: '__root__' | '/' | '/subscriptions/new'
+  to: '/' | '/subscriptions/new' | '/subscriptions/$id/edit'
+  id: '__root__' | '/' | '/subscriptions/new' | '/subscriptions/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SubscriptionsNewRoute: typeof SubscriptionsNewRoute
+  SubscriptionsIdEditRoute: typeof SubscriptionsIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscriptionsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/subscriptions/$id/edit': {
+      id: '/subscriptions/$id/edit'
+      path: '/subscriptions/$id/edit'
+      fullPath: '/subscriptions/$id/edit'
+      preLoaderRoute: typeof SubscriptionsIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SubscriptionsNewRoute: SubscriptionsNewRoute,
+  SubscriptionsIdEditRoute: SubscriptionsIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
