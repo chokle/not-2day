@@ -8,8 +8,8 @@ export function ServiceLogo({
   className,
 }: {
   name: string;
-  domain?: string;
-  className?: string;
+  domain?: string | undefined;
+  className?: string | undefined;
 }) {
   const [failed, setFailed] = useState(false);
   const src = logoUrl(domain);
