@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ImportRouteImport } from './routes/import'
 import { Route as SubscriptionsNewRouteImport } from './routes/subscriptions.new'
 import { Route as SubscriptionsIdCancelRouteImport } from './routes/subscriptions.$id.cancel'
 import { Route as SubscriptionsIdEditRouteImport } from './routes/subscriptions.$id.edit'
@@ -17,6 +18,11 @@ import { Route as SubscriptionsIdEditRouteImport } from './routes/subscriptions.
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportRoute = ImportRouteImport.update({
+  id: '/import',
+  path: '/import',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SubscriptionsNewRoute = SubscriptionsNewRouteImport.update({
@@ -37,12 +43,14 @@ const SubscriptionsIdEditRoute = SubscriptionsIdEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/import': typeof ImportRoute
   '/subscriptions/new': typeof SubscriptionsNewRoute
   '/subscriptions/$id/cancel': typeof SubscriptionsIdCancelRoute
   '/subscriptions/$id/edit': typeof SubscriptionsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/import': typeof ImportRoute
   '/subscriptions/new': typeof SubscriptionsNewRoute
   '/subscriptions/$id/cancel': typeof SubscriptionsIdCancelRoute
   '/subscriptions/$id/edit': typeof SubscriptionsIdEditRoute
@@ -50,6 +58,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/import': typeof ImportRoute
   '/subscriptions/new': typeof SubscriptionsNewRoute
   '/subscriptions/$id/cancel': typeof SubscriptionsIdCancelRoute
   '/subscriptions/$id/edit': typeof SubscriptionsIdEditRoute
@@ -58,18 +67,21 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/import'
     | '/subscriptions/new'
     | '/subscriptions/$id/cancel'
     | '/subscriptions/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/import'
     | '/subscriptions/new'
     | '/subscriptions/$id/cancel'
     | '/subscriptions/$id/edit'
   id:
     | '__root__'
     | '/'
+    | '/import'
     | '/subscriptions/new'
     | '/subscriptions/$id/cancel'
     | '/subscriptions/$id/edit'
@@ -77,6 +89,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ImportRoute: typeof ImportRoute
   SubscriptionsNewRoute: typeof SubscriptionsNewRoute
   SubscriptionsIdCancelRoute: typeof SubscriptionsIdCancelRoute
   SubscriptionsIdEditRoute: typeof SubscriptionsIdEditRoute
@@ -89,6 +102,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import': {
+      id: '/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof ImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/subscriptions/new': {
@@ -117,6 +137,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ImportRoute: ImportRoute,
   SubscriptionsNewRoute: SubscriptionsNewRoute,
   SubscriptionsIdCancelRoute: SubscriptionsIdCancelRoute,
   SubscriptionsIdEditRoute: SubscriptionsIdEditRoute,
