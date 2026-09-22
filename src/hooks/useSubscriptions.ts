@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { subscriptionSchema, type Subscription } from "@/lib/subscriptions";
+import { fetchRemote, subToRow } from "@/lib/remote-subscriptions";
+import { useAuth } from "@/hooks/useAuth";
 
 const STORAGE_KEY = "trialkeeper.subscriptions.v1";
 
-function read(): Subscription[] {
+export function readLocal(): Subscription[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
@@ -18,79 +21,130 @@ function read(): Subscription[] {
   }
 }
 
+export function clearLocal() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
 const listeners = new Set<() => void>();
 function notify() {
   listeners.forEach((l) => l());
 }
 
 export function useSubscriptions() {
+  const { user, ready } = useAuth();
+  const userId = user?.id ?? null;
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    const sync = () => setSubs(read());
-    sync();
+  const refresh = useCallback(async () => {
+    if (userId) {
+      try {
+        setSubs(await fetchRemote());
+      } catch {
+        setSubs([]);
+      }
+    } else {
+      setSubs(readLocal());
+    }
     setLoaded(true);
+  }, [userId]);
+
+  useEffect(() => {
+    if (!ready) return;
+    void refresh();
+    const sync = () => {
+      void refresh();
+    };
     listeners.add(sync);
     window.addEventListener("storage", sync);
     return () => {
       listeners.delete(sync);
       window.removeEventListener("storage", sync);
     };
-  }, []);
+  }, [ready, refresh]);
 
-  const persist = useCallback((next: Subscription[]) => {
+  const persistLocal = useCallback((next: Subscription[]) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     notify();
   }, []);
 
   const add = useCallback(
-    (sub: Omit<Subscription, "id" | "createdAt">) => {
-      const record: Subscription = {
-        ...sub,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-      };
-      persist([...read(), record]);
-      return record;
+    async (sub: Omit<Subscription, "id" | "createdAt">) => {
+      if (userId) {
+        await supabase.from("subscriptions").insert(subToRow(sub, userId) as never);
+        await refresh();
+        return;
+      }
+      persistLocal([
+        ...readLocal(),
+        { ...sub, id: crypto.randomUUID(), createdAt: new Date().toISOString() },
+      ]);
     },
-    [persist],
+    [userId, persistLocal, refresh],
   );
 
   const addMany = useCallback(
-    (items: Omit<Subscription, "id" | "createdAt">[]) => {
+    async (items: Omit<Subscription, "id" | "createdAt">[]) => {
+      if (!items.length) return;
+      if (userId) {
+        await supabase
+          .from("subscriptions")
+          .insert(items.map((i) => subToRow(i, userId)) as never);
+        await refresh();
+        return;
+      }
       const now = new Date().toISOString();
-      const records = items.map((sub) => ({
-        ...sub,
-        id: crypto.randomUUID(),
-        createdAt: now,
-      }));
-      persist([...read(), ...records]);
-      return records;
+      persistLocal([
+        ...readLocal(),
+        ...items.map((sub) => ({ ...sub, id: crypto.randomUUID(), createdAt: now })),
+      ]);
     },
-    [persist],
+    [userId, persistLocal, refresh],
   );
 
   const update = useCallback(
-    (id: string, patch: Partial<Subscription>) => {
-      persist(read().map((s) => (s.id === id ? { ...s, ...patch } : s)));
+    async (id: string, patch: Partial<Subscription>) => {
+      if (userId) {
+        await supabase
+          .from("subscriptions")
+          .update(subToRow(patch) as never)
+          .eq("id", id);
+        await refresh();
+        return;
+      }
+      persistLocal(readLocal().map((s) => (s.id === id ? { ...s, ...patch } : s)));
     },
-    [persist],
+    [userId, persistLocal, refresh],
   );
 
   const remove = useCallback(
-    (id: string) => {
-      persist(read().filter((s) => s.id !== id));
+    async (id: string) => {
+      if (userId) {
+        await supabase.from("subscriptions").delete().eq("id", id);
+        await refresh();
+        return;
+      }
+      persistLocal(readLocal().filter((s) => s.id !== id));
     },
-    [persist],
+    [userId, persistLocal, refresh],
   );
 
   const replaceAll = useCallback(
-    (items: Subscription[]) => {
-      persist(items);
+    async (items: Subscription[]) => {
+      if (userId) {
+        await supabase.from("subscriptions").delete().eq("user_id", userId);
+        if (items.length) {
+          await supabase
+            .from("subscriptions")
+            .insert(items.map((i) => subToRow(i, userId)) as never);
+        }
+        await refresh();
+        return;
+      }
+      persistLocal(items);
     },
-    [persist],
+    [userId, persistLocal, refresh],
   );
 
-  return { subs, loaded, add, addMany, update, remove, replaceAll };
+  return { subs, loaded, add, addMany, update, remove, replaceAll, refresh, signedIn: !!userId };
 }
