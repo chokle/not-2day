@@ -14,7 +14,155 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          email_reminders: boolean
+          id: string
+          lead_days: number[]
+          push_reminders: boolean
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          email_reminders?: boolean
+          id: string
+          lead_days?: number[]
+          push_reminders?: boolean
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          email_reminders?: boolean
+          id?: string
+          lead_days?: number[]
+          push_reminders?: boolean
+        }
+        Relationships: []
+      }
+      push_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reminder_sends: {
+        Row: {
+          channel: string
+          id: string
+          kind: string
+          lead_days: number
+          sent_at: string
+          subscription_id: string
+          target_date: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          id?: string
+          kind: string
+          lead_days: number
+          sent_at?: string
+          subscription_id: string
+          target_date: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          id?: string
+          kind?: string
+          lead_days?: number
+          sent_at?: string
+          subscription_id?: string
+          target_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_sends_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          cancel_steps: string[] | null
+          cancel_url: string | null
+          category: string | null
+          created_at: string
+          currency: string
+          cycle: string
+          domain: string | null
+          id: string
+          name: string
+          next_charge_date: string | null
+          notes: string | null
+          price: number
+          start_date: string | null
+          status: string
+          support_email: string | null
+          trial_end_date: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_steps?: string[] | null
+          cancel_url?: string | null
+          category?: string | null
+          created_at?: string
+          currency?: string
+          cycle?: string
+          domain?: string | null
+          id?: string
+          name: string
+          next_charge_date?: string | null
+          notes?: string | null
+          price?: number
+          start_date?: string | null
+          status?: string
+          support_email?: string | null
+          trial_end_date?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_steps?: string[] | null
+          cancel_url?: string | null
+          category?: string | null
+          created_at?: string
+          currency?: string
+          cycle?: string
+          domain?: string | null
+          id?: string
+          name?: string
+          next_charge_date?: string | null
+          notes?: string | null
+          price?: number
+          start_date?: string | null
+          status?: string
+          support_email?: string | null
+          trial_end_date?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
