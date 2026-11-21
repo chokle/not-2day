@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ImportRouteImport } from './routes/import'
 import { Route as SubscriptionsNewRouteImport } from './routes/subscriptions.new'
+import { Route as ApiRemindersCronRouteImport } from './routes/api/reminders/cron'
 import { Route as SubscriptionsIdCancelRouteImport } from './routes/subscriptions.$id.cancel'
 import { Route as SubscriptionsIdEditRouteImport } from './routes/subscriptions.$id.edit'
 
@@ -36,6 +37,11 @@ const SubscriptionsNewRoute = SubscriptionsNewRouteImport.update({
   path: '/subscriptions/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRemindersCronRoute = ApiRemindersCronRouteImport.update({
+  id: '/api/reminders/cron',
+  path: '/api/reminders/cron',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SubscriptionsIdCancelRoute = SubscriptionsIdCancelRouteImport.update({
   id: '/subscriptions/$id/cancel',
   path: '/subscriptions/$id/cancel',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/import': typeof ImportRoute
   '/subscriptions/new': typeof SubscriptionsNewRoute
+  '/api/reminders/cron': typeof ApiRemindersCronRoute
   '/subscriptions/$id/cancel': typeof SubscriptionsIdCancelRoute
   '/subscriptions/$id/edit': typeof SubscriptionsIdEditRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/import': typeof ImportRoute
   '/subscriptions/new': typeof SubscriptionsNewRoute
+  '/api/reminders/cron': typeof ApiRemindersCronRoute
   '/subscriptions/$id/cancel': typeof SubscriptionsIdCancelRoute
   '/subscriptions/$id/edit': typeof SubscriptionsIdEditRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/import': typeof ImportRoute
   '/subscriptions/new': typeof SubscriptionsNewRoute
+  '/api/reminders/cron': typeof ApiRemindersCronRoute
   '/subscriptions/$id/cancel': typeof SubscriptionsIdCancelRoute
   '/subscriptions/$id/edit': typeof SubscriptionsIdEditRoute
 }
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/import'
     | '/subscriptions/new'
+    | '/api/reminders/cron'
     | '/subscriptions/$id/cancel'
     | '/subscriptions/$id/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/import'
     | '/subscriptions/new'
+    | '/api/reminders/cron'
     | '/subscriptions/$id/cancel'
     | '/subscriptions/$id/edit'
   id:
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/import'
     | '/subscriptions/new'
+    | '/api/reminders/cron'
     | '/subscriptions/$id/cancel'
     | '/subscriptions/$id/edit'
   fileRoutesById: FileRoutesById
@@ -104,6 +116,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ImportRoute: typeof ImportRoute
   SubscriptionsNewRoute: typeof SubscriptionsNewRoute
+  ApiRemindersCronRoute: typeof ApiRemindersCronRoute
   SubscriptionsIdCancelRoute: typeof SubscriptionsIdCancelRoute
   SubscriptionsIdEditRoute: typeof SubscriptionsIdEditRoute
 }
@@ -138,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubscriptionsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/reminders/cron': {
+      id: '/api/reminders/cron'
+      path: '/api/reminders/cron'
+      fullPath: '/api/reminders/cron'
+      preLoaderRoute: typeof ApiRemindersCronRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/subscriptions/$id/cancel': {
       id: '/subscriptions/$id/cancel'
       path: '/subscriptions/$id/cancel'
@@ -160,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ImportRoute: ImportRoute,
   SubscriptionsNewRoute: SubscriptionsNewRoute,
+  ApiRemindersCronRoute: ApiRemindersCronRoute,
   SubscriptionsIdCancelRoute: SubscriptionsIdCancelRoute,
   SubscriptionsIdEditRoute: SubscriptionsIdEditRoute,
 }
