@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ServiceLogo } from "@/components/ServiceLogo";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
+import { useAuth } from "@/hooks/useAuth";
 import { scanGmailForSubscriptions, type ScanCandidate } from "@/lib/gmail-scan.functions";
 import { formatMoney, type Subscription } from "@/lib/subscriptions";
 import { findPreset } from "@/data/services";
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/import")({
 function ImportPage() {
   const scan = useServerFn(scanGmailForSubscriptions);
   const { subs, addMany } = useSubscriptions();
+  const { signedIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [candidates, setCandidates] = useState<ScanCandidate[] | null>(null);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -49,15 +51,18 @@ function ImportPage() {
         setError(result.error);
         setCandidates([]);
       } else {
-        const fresh = result.candidates.filter(
-          (c) => !existing.has(c.name.trim().toLowerCase()),
-        );
+        const fresh = result.candidates.filter((c) => !existing.has(c.name.trim().toLowerCase()));
         setCandidates(fresh);
         setSelected(Object.fromEntries(fresh.map((c) => [c.name, true])));
         toast.success(`Read ${result.scanned} emails`);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Scan failed");
+      const message = e instanceof Error ? e.message : "Scan failed";
+      setError(
+        /unauthorized/i.test(message)
+          ? "Your session expired — please sign in again to scan."
+          : message,
+      );
     } finally {
       setLoading(false);
     }
@@ -96,19 +101,36 @@ function ImportPage() {
       </Link>
       <h1 className="text-2xl font-bold tracking-tight">Find subscriptions in Gmail</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        TrialKeeper reads recent receipts, trial confirmations and renewal notices, then
-        shows you what it found. Nothing is saved until you approve it.
+        TrialKeeper reads recent receipts, trial confirmations and renewal notices, then shows you
+        what it found. Nothing is saved until you approve it.
       </p>
 
       <div className="mt-4 flex items-start gap-2 rounded-xl border border-border bg-card p-3 text-xs text-muted-foreground">
         <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
         <p>
-          Only email subjects, senders and short previews are analysed, and only during a
-          scan. Imported subscriptions live in this browser.
+          Only email subjects, senders and short previews are analysed, and only during a scan.{" "}
+          {signedIn
+            ? "Imported subscriptions are saved to your TrialKeeper account."
+            : "Imported subscriptions live in this browser."}
         </p>
       </div>
 
-      <Button className="mt-5 h-12 w-full text-base" onClick={run} disabled={loading}>
+      {!signedIn && (
+        <div className="mt-4 rounded-xl border border-border bg-card p-4 text-sm">
+          <p className="font-medium">Gmail scanning needs an account</p>
+          <p className="mt-1 text-muted-foreground">
+            Sign in so the scan can run against your own mailbox — anonymous scans are disabled.
+          </p>
+          <Link
+            to="/auth"
+            className="mt-2 inline-block font-medium text-primary underline underline-offset-4"
+          >
+            Sign in to continue
+          </Link>
+        </div>
+      )}
+
+      <Button className="mt-5 h-12 w-full text-base" onClick={run} disabled={loading || !signedIn}>
         {loading ? <Loader2 className="animate-spin" /> : <Mail />}
         {loading ? "Reading your inbox…" : "Scan my Gmail"}
       </Button>
@@ -138,9 +160,7 @@ function ImportPage() {
               >
                 <Checkbox
                   checked={!!selected[c.name]}
-                  onCheckedChange={(v) =>
-                    setSelected((s) => ({ ...s, [c.name]: v === true }))
-                  }
+                  onCheckedChange={(v) => setSelected((s) => ({ ...s, [c.name]: v === true }))}
                   className="mt-1"
                 />
                 <ServiceLogo
