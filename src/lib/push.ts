@@ -1,20 +1,23 @@
+/**
+ * Push notification client scaffold — NOT wired up.
+ *
+ * `enablePush()` is never called anywhere and there is no server-side
+ * sender, so no UI in the app promises push reminders. Left in place as a
+ * starting point; do not advertise push until a sender exists.
+ */
 import { initializeApp, getApps } from "firebase/app";
 import { getMessaging, getToken, isSupported } from "firebase/messaging";
 
 const appId = import.meta.env["VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_APP_ID"] as
-  | string
-  | undefined;
+  string | undefined;
 const vapidKey = import.meta.env["VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_VAPID_KEY"] as
-  | string
-  | undefined;
+  string | undefined;
 
 const firebaseConfig = {
   apiKey: import.meta.env["VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_WEB_API_KEY"] as
-    | string
-    | undefined,
+    string | undefined,
   projectId: import.meta.env["VITE_LOVABLE_CONNECTOR_FIREBASE_MESSAGING_PROJECT_ID"] as
-    | string
-    | undefined,
+    string | undefined,
   appId,
   messagingSenderId: appId?.split(":")[1] ?? "",
 };
@@ -41,17 +44,11 @@ export async function enablePush(): Promise<PushResult> {
   }
 
   const permission =
-    Notification.permission === "granted"
-      ? "granted"
-      : await Notification.requestPermission();
+    Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
   if (permission !== "granted") return { status: "denied" };
 
-  const query = new URLSearchParams(
-    firebaseConfig as unknown as Record<string, string>,
-  ).toString();
-  const registration = await navigator.serviceWorker.register(
-    `/firebase-messaging-sw.js?${query}`,
-  );
+  const query = new URLSearchParams(firebaseConfig as unknown as Record<string, string>).toString();
+  const registration = await navigator.serviceWorker.register(`/firebase-messaging-sw.js?${query}`);
   const app = getApps()[0] ?? initializeApp(firebaseConfig as never);
   const messaging = getMessaging(app);
   const token = await getToken(messaging, {
