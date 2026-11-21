@@ -4,6 +4,7 @@ import { Plus, Mail, ShieldAlert, Download, Upload } from "lucide-react";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { Button } from "@/components/ui/button";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
+import { useAuth } from "@/hooks/useAuth";
 import {
   countdownLabel,
   daysUntil,
@@ -41,14 +42,13 @@ type Filter = "all" | "trials" | "paid" | "cancelled";
 
 function Dashboard() {
   const { subs, loaded, replaceAll } = useSubscriptions();
+  const { signedIn } = useAuth();
   const [filter, setFilter] = useState<Filter>("all");
   const navigate = useNavigate();
 
   const active = useMemo(() => subs.filter((s) => s.status === "active"), [subs]);
   const trials = useMemo(() => active.filter(isTrial), [active]);
-  const monthly = active
-    .filter((s) => !isTrial(s))
-    .reduce((sum, s) => sum + monthlyCost(s), 0);
+  const monthly = active.filter((s) => !isTrial(s)).reduce((sum, s) => sum + monthlyCost(s), 0);
   const atRisk = trials.reduce((sum, s) => sum + yearlyCost(s) / 12, 0);
 
   const expiringSoon = useMemo(
@@ -108,9 +108,7 @@ function Dashboard() {
   return (
     <main className="mx-auto min-h-screen w-full max-w-2xl px-4 pb-28 pt-8">
       <header className="mb-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          TrialKeeper
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">TrialKeeper</p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight">
           Your subscriptions, under control
         </h1>
@@ -192,8 +190,8 @@ function Dashboard() {
           <div className="rounded-2xl border border-dashed border-border p-8 text-center">
             <p className="font-medium">Nothing here yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Add a subscription manually, or let TrialKeeper read your Gmail receipts and
-              find them for you.
+              Add a subscription manually, or let TrialKeeper read your Gmail receipts and find them
+              for you.
             </p>
           </div>
         ) : (
@@ -202,10 +200,17 @@ function Dashboard() {
       </section>
 
       <footer className="mt-10 space-y-3 border-t border-border pt-6 text-xs text-muted-foreground">
-        <p>
-          Your data stays in this browser only — no account, no server copy. Back it up if
-          you clear your browser data.
-        </p>
+        {signedIn ? (
+          <p>
+            You&rsquo;re signed in — your subscriptions are stored in your TrialKeeper account, and
+            reminder emails are sent from the daily check.
+          </p>
+        ) : (
+          <p>
+            Your data stays in this browser only — no account, no server copy. Back it up if you
+            clear your browser data. Sign in to sync and get trial reminder emails.
+          </p>
+        )}
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={exportJson}>
             <Download /> Export
@@ -240,12 +245,7 @@ function StatCard({
   return (
     <div className="rounded-2xl border border-border bg-card p-3">
       <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p
-        className={cn(
-          "mt-1 text-lg font-bold tabular-nums",
-          tone === "warn" && "text-accent",
-        )}
-      >
+      <p className={cn("mt-1 text-lg font-bold tabular-nums", tone === "warn" && "text-accent")}>
         {value}
       </p>
     </div>
