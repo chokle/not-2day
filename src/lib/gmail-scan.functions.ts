@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_mail";
 
@@ -43,6 +44,11 @@ function headerValue(headers: Array<{ name: string; value: string }>, name: stri
 }
 
 export const scanGmailForSubscriptions = createServerFn({ method: "POST" })
+  // The Gmail connection is a single project-level mailbox (the owner's).
+  // Requiring a signed-in session keeps anonymous visitors from ever
+  // triggering a scan against someone else's inbox. Per-user Gmail OAuth
+  // is the real fix before this becomes a multi-user product.
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: { maxMessages?: number }) =>
     z.object({ maxMessages: z.number().min(5).max(60).default(35) }).parse(input ?? {}),
   )
